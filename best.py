@@ -10,7 +10,7 @@ API_HASH = os.environ.get("API_HASH")
 BOT_TOKEN = os.environ.get("BOT_TOKEN")
 
 # ✅ SET YOUR CHANNEL USERNAME (destination)
-MY_CHANNEL = "@bestie_best"   # ← Change this (without @)
+MY_CHANNEL = "https://t.me/bestie_best"   # ← Change this (without @)
 
 # ✅ CUSTOM NAME TO SHOW WITH FORWARDED MEDIA
 CUSTOM_CAPTION = "📦 From: @STUDY_DIMENSION_NETWORK"
