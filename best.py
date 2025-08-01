@@ -10,10 +10,10 @@ API_HASH = os.environ.get("API_HASH")
 BOT_TOKEN = os.environ.get("BOT_TOKEN")
 
 # ✅ SET YOUR CHANNEL USERNAME (destination)
-MY_CHANNEL = "your_channel_username_here"   # ← Change this (without @)
+MY_CHANNEL = "@bestie_best"   # ← Change this (without @)
 
 # ✅ CUSTOM NAME TO SHOW WITH FORWARDED MEDIA
-CUSTOM_CAPTION = "📦 From: @YourCustomName"
+CUSTOM_CAPTION = "📦 From: @STUDY_DIMENSION_NETWORK"
 
 app = Client("public_forward_bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
 
