@@ -75,7 +75,7 @@ async def handle_link(_, msg: Message):
                 current_id += 1
                 continue
             
-            except Exception as e:
+    except Exception as e:
         await msg.reply_text(f"❌ Failed to start:\n{e}")
 
 print("🤖 Bot is running and ready to copy posts!")
