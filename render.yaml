@@ -1,10 +1,10 @@
 services:
-  - type: web
+  - type: worker
     name: telegram-forward-bot
     env: python
-    plan: free
-    buildCommand: pip install -r requirements.txt
-    startCommand: python forward_bot.py
+    plan: starter
+    buildCommand: pip install --upgrade pip && pip install -r requirements.txt
+    startCommand: python main.py
     envVars:
       - key: API_ID
         value: your_api_id
@@ -12,3 +12,5 @@ services:
         value: your_api_hash
       - key: BOT_TOKEN
         value: your_bot_token
+      - key: DEST_CHANNEL
+        value: -100xxxxxxxxxx  # your destination channel ID
