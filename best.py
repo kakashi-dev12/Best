@@ -68,14 +68,14 @@ async def handle_link(_, msg: Message):
 
                 current_id += 1
                 await asyncio.sleep(0.5)
-    except FloodWait as e:
+            except FloodWait as e:
                 await asyncio.sleep(e.value)
             except Exception as e:
                 print(f"❌ Error on message {current_id}: {e}")
                 current_id += 1
                 continue
-
-    except Exception as e:
+            
+            except Exception as e:
         await msg.reply_text(f"❌ Failed to start:\n{e}")
 
 print("🤖 Bot is running and ready to copy posts!")
