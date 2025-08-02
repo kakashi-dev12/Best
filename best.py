@@ -37,22 +37,23 @@ async def copy_command(client, message: Message):
         success = 0
 
         while True:
-            try:
-                msg = await app.get_messages(source_channel, current_id)
-                if not msg:
-                    break
-if msg.media:
-                    await msg.copy(DEST_CHANNEL, caption=clean_caption(msg.caption or msg.text))
-                else:
-                    await app.send_message(DEST_CHANNEL, clean_caption(msg.text))
-
-                success += 1
-                current_id += 1
-                await asyncio.sleep(0.5)
-
-            except Exception as e:
-                print(f"Stopped at {current_id} → {e}")
+        try:
+            msg = await app.get_messages(source_channel, current_id)
+            if not msg:
                 break
+
+            if msg.media:
+                await msg.copy(destination_channel_id, caption=clean_caption(msg.caption or msg.text))
+            else:
+                await app.send_message(destination_channel_id, clean_caption(msg.text))
+
+            success += 1
+            current_id += 1
+            await asyncio.sleep(0.5)
+
+        except Exception as e:
+            print(f"Stopped at {current_id} → {e}")
+            break
 
         await message.reply(f"✅ {success} messages copied successfully.")
 
