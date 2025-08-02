@@ -1,80 +1,73 @@
 import os
-import re
 import asyncio
-import threading
-from flask import Flask
 from pyrogram import Client, filters
 from pyrogram.types import Message
-from pyrogram.errors import MessageIdInvalid, FloodWait
+import re
 
+# Get values from Render environment
 API_ID = int(os.environ.get("API_ID"))
 API_HASH = os.environ.get("API_HASH")
 BOT_TOKEN = os.environ.get("BOT_TOKEN")
+DEST_CHANNEL = os.environ.get("DEST_CHANNEL")  # Example: -100xxxxxxxxxx
 
-# Channel where to forward
-DEST_CHANNEL = "bestum_best"
-CUSTOM_CAPTION = "https://t.me/STUDY_DIMENSION_NETWORK"
+# Bot client
+app = Client("forwarder_bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
 
-app = Client("forwarder", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
-
-# Flask app to keep Render alive
-web = Flask(__name__)
-
-@web.route('/')
-def home():
-    return "✅ Bot is alive!"
-
-# Active forward tracking per user
+# Track active forwarding tasks per user
 active_tracking = {}
 
-@app.on_message(filters.private & filters.text)
+# Regex to extract channel and message ID from Telegram link
+LINK_REGEX = r"https:\/\/t\.me\/([a-zA-Z0-9_]+)/(\d+)"
+@app.on_message(filters.command("startforward") & filters.private)
 async def start_forwarding(client, message: Message):
-    link = message.text.strip()
-    match = re.match(r"https?://t\.me/([\w\d_]+)/(\d+)", link)
-
-    if not match:
-        await message.reply("❌ Invalid link. Use format:\nhttps://t.me/channelname/123")
+    if len(message.command) < 2:
+        await message.reply("❌ Use like:\n`/startforward https://t.me/channel/123`")
         return
 
-    channel_username, msg_id = match.groups()
-    msg_id = int(msg_id) + 1
+    match = re.match(LINK_REGEX, message.command[1])
+    if not match:
+        await message.reply("❌ Invalid link format.")
+        return
 
+    channel_username = match.group(1)
+    msg_id = int(match.group(2))
     chat_id = message.chat.id
+
     active_tracking[chat_id] = (channel_username, msg_id)
-    await message.reply(f"✅ Started forwarding from `{channel_username}` after message `{msg_id - 1}`")
+    await message.reply(f"✅ Started copying from `{channel_username}` starting at message ID `{msg_id}`.")
 
     asyncio.create_task(forward_loop(chat_id))
-    async def forward_loop(chat_id):
+async def forward_loop(chat_id):
     channel, msg_id = active_tracking[chat_id]
 
     while active_tracking.get(chat_id) == (channel, msg_id):
         try:
             msg = await app.get_messages(channel, msg_id)
 
-            if msg.video or msg.audio or msg.document:
+            if msg and (msg.video or msg.audio or msg.document):
+                caption_text = "Provided by [Study Dimension](https://t.me/STUDY_DIMENSION_NETWORK)"
                 await app.copy_message(
                     chat_id=DEST_CHANNEL,
                     from_chat_id=channel,
                     message_id=msg_id,
-                    caption=CUSTOM_CAPTION if msg.caption or msg.text else None
+                    caption=caption_text,
+                    caption_entities=[
+                        {
+                            "type": "text_link",
+                            "offset": 13,
+                            "length": 15,
+                            "url": "https://t.me/STUDY_DIMENSION_NETWORK"
+                        }
+                    ]
                 )
 
             msg_id += 1
             active_tracking[chat_id] = (channel, msg_id)
             await asyncio.sleep(2)
 
-        except MessageIdInvalid:
-            await asyncio.sleep(5)
-        except FloodWait as fw:
-            await asyncio.sleep(fw.value)
         except Exception as e:
-            await app.send_message(chat_id, f"⚠️ Error while forwarding:\n`{e}`")
-            await asyncio.sleep(10)
+            print(f"❌ Error: {e}")
+            await asyncio.sleep(5)
 
-# Run Flask in background thread
-def run_flask():
-    web.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000)))
 
-if __name__ == "__main__":
-    threading.Thread(target=run_flask).start()
-    app.run()
+app.run()
